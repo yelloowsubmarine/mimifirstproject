@@ -102,6 +102,92 @@
     color: #666;
     min-height: 20px;
   }
+
+  .hack-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .hack-overlay.active {
+    opacity: 1;
+  }
+
+  .hack-overlay.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.06) 0px,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+    animation: scanlines 0.15s linear infinite;
+  }
+
+  @keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+  }
+
+  .glitch-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.2rem;
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: #ff2b2b;
+    text-shadow: 3px 0 #00f0ff, -3px 0 #ff2b2b;
+    animation: glitchText 0.25s steps(2) infinite;
+    white-space: nowrap;
+  }
+
+  @keyframes glitchText {
+    0% { transform: translate(-50%, -50%) skewX(0deg); }
+    25% { transform: translate(calc(-50% + 3px), -50%) skewX(2deg); }
+    50% { transform: translate(calc(-50% - 3px), -50%) skewX(-2deg); }
+    75% { transform: translate(-50%, calc(-50% + 2px)) skewX(1deg); }
+    100% { transform: translate(-50%, -50%) skewX(0deg); }
+  }
+
+  .pop-item {
+    position: absolute;
+    border: 3px solid #fff;
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.7);
+    object-fit: cover;
+    animation: popIn 0.3s ease forwards;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0) rotate(0deg); opacity: 0; }
+    60% { transform: scale(1.15) rotate(var(--rot)); opacity: 1; }
+    100% { transform: scale(1) rotate(var(--rot)); opacity: 1; }
+  }
+
+  .pop-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 2.5rem;
+  }
+
+  body.hacking {
+    animation: bodyShake 0.15s linear infinite;
+  }
+
+  @keyframes bodyShake {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(2px, -2px); }
+  }
 </style>
 </head>
 <body>
@@ -119,12 +205,68 @@
 
   <audio id="sound" src="sounds/clip.mp3" preload="auto"></audio>
   <div class="flash" id="flash"></div>
+  <div class="hack-overlay" id="hackOverlay">
+    <div class="glitch-text">SYSTÈME COMPROMIS</div>
+  </div>
 
   <script>
     const button = document.getElementById('bigRedButton');
     const sound = document.getElementById('sound');
     const flash = document.getElementById('flash');
     const status = document.getElementById('status');
+    const hackOverlay = document.getElementById('hackOverlay');
+
+    // Liste des images "wtf" à faire apparaître au clic.
+    // Ajoute simplement le nom des fichiers déposés dans le dossier images/.
+    const wtfImages = [
+      'images/img1.jpg',
+      'images/img2.jpg',
+      'images/img3.jpg',
+      'images/img4.jpg',
+      'images/img5.jpg',
+      'images/img6.jpg',
+    ];
+
+    const fallbackEmojis = ['🐶', '😱', '🚨', '🤯', '📸'];
+
+    function spawnHackImages() {
+      hackOverlay.innerHTML = '<div class="glitch-text">SYSTÈME COMPROMIS</div>';
+
+      const count = 14;
+      for (let i = 0; i < count; i++) {
+        const delay = i * 90;
+        setTimeout(() => {
+          const src = wtfImages[Math.floor(Math.random() * wtfImages.length)];
+          const size = 90 + Math.random() * 100;
+          const left = Math.random() * 85;
+          const top = Math.random() * 80;
+          const rot = (Math.random() * 60 - 30).toFixed(1) + 'deg';
+
+          const img = document.createElement('img');
+          img.src = src;
+          img.className = 'pop-item';
+          img.style.setProperty('--rot', rot);
+          img.style.width = size + 'px';
+          img.style.height = size + 'px';
+          img.style.left = left + '%';
+          img.style.top = top + '%';
+
+          img.onerror = () => {
+            const fallback = document.createElement('div');
+            fallback.className = 'pop-item pop-fallback';
+            fallback.style.setProperty('--rot', rot);
+            fallback.style.width = size + 'px';
+            fallback.style.height = size + 'px';
+            fallback.style.left = left + '%';
+            fallback.style.top = top + '%';
+            fallback.textContent = fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
+            img.replaceWith(fallback);
+          };
+
+          hackOverlay.appendChild(img);
+        }, delay);
+      }
+    }
 
     button.addEventListener('click', () => {
       button.classList.remove('shake');
@@ -134,6 +276,16 @@
       flash.classList.remove('active');
       void flash.offsetWidth;
       flash.classList.add('active');
+
+      document.body.classList.add('hacking');
+      hackOverlay.classList.add('active');
+      spawnHackImages();
+
+      setTimeout(() => {
+        document.body.classList.remove('hacking');
+        hackOverlay.classList.remove('active');
+        hackOverlay.innerHTML = '';
+      }, 3500);
 
       sound.currentTime = 0;
       sound.play().catch(() => {
