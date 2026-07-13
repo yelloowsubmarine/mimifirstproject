@@ -287,27 +287,71 @@
       ctx.stroke();
     }
 
-    function drawFlameTrail(x, y) {
-      const flicker = Math.sin(frame / 3) * 2;
-      const colors = ['#ff6a00', '#ffb400', '#ff3d00'];
-      for (let i = 0; i < 5; i++) {
-        const fx = x - 4 - i * 5;
-        const fy = y + 18 + Math.sin(frame / 4 + i) * 3;
-        const size = 6 - i;
-        ctx.fillStyle = colors[i % colors.length];
+    function drawWaterSpray(x, y) {
+      const bob = Math.sin(frame / 4) * 1.5;
+      for (let i = 0; i < 6; i++) {
+        const fx = x - 6 - i * 6;
+        const fy = y + bob + Math.sin(frame / 5 + i) * 3 - i * 1.5;
+        const size = 4.5 - i * 0.4;
+        ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(191,230,245,0.8)';
         ctx.beginPath();
-        ctx.moveTo(fx, fy);
-        ctx.lineTo(fx - size, fy + size + flicker);
-        ctx.lineTo(fx + size, fy + size + flicker);
-        ctx.closePath();
+        ctx.arc(fx, fy, size, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+
+    function drawJetski(x, hullY) {
+      const bob = Math.sin(frame / 8) * 1.5;
+      const hy = hullY + bob;
+
+      drawWaterSpray(x - 10, hy + 6);
+
+      // Coque (corps blanc)
+      ctx.fillStyle = '#eef2f5';
+      ctx.beginPath();
+      ctx.moveTo(x - 12, hy + 10);
+      ctx.lineTo(x + 34, hy + 10);
+      ctx.quadraticCurveTo(x + 44, hy + 5, x + 34, hy - 2);
+      ctx.lineTo(x + 8, hy - 4);
+      ctx.quadraticCurveTo(x - 14, hy - 3, x - 12, hy + 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#c3ccd1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Bande bleue
+      ctx.fillStyle = '#2a8fc0';
+      ctx.fillRect(x - 12, hy + 5, 46, 4);
+
+      // Selle
+      ctx.fillStyle = '#1c2b36';
+      ctx.fillRect(x + 2, hy - 8, 18, 6);
+
+      // Guidon
+      ctx.strokeStyle = '#1c2b36';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 16, hy - 8);
+      ctx.lineTo(x + 20, hy - 20);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + 13, hy - 19);
+      ctx.lineTo(x + 27, hy - 19);
+      ctx.stroke();
+
+      // Phare
+      ctx.fillStyle = '#fef6d8';
+      ctx.beginPath();
+      ctx.arc(x + 32, hy + 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      return hy;
     }
 
     function drawClubGuy() {
       const x = dino.x;
       const y = dino.y;
-      const legFrame = Math.floor(frame / 6) % 2;
       const suitColor = '#f5f5f5';
       const skinColor = '#e8b98a';
 
@@ -318,33 +362,27 @@
       ctx.fillStyle = glow;
       ctx.fillRect(x - 25, y - 30, 80, 80);
 
-      // Traînée de flammes
-      drawFlameTrail(x, y);
-
       // Ailes (derrière le corps)
       drawWing(x + 4, y + 10, -1);
       drawWing(x + 20, y + 10, 1);
 
-      // Jambes
+      // Jet-ski (sous les pieds)
+      const deckY = drawJetski(x - 4, y + 20);
+
+      // Jambes légèrement fléchies, ancrées sur le jet-ski
       ctx.fillStyle = suitColor;
-      if (!dino.jumping) {
-        if (legFrame === 0) {
-          ctx.fillRect(x + 6, y + 20, 6, 10);
-          ctx.fillRect(x + 18, y + 20, 6, 7);
-        } else {
-          ctx.fillRect(x + 6, y + 20, 6, 7);
-          ctx.fillRect(x + 18, y + 20, 6, 10);
-        }
-      } else {
-        ctx.fillRect(x + 6, y + 20, 6, 8);
-        ctx.fillRect(x + 18, y + 20, 6, 8);
-      }
+      const bend = dino.jumping ? -3 : Math.sin(frame / 8) * 1;
+      ctx.fillRect(x + 5, y + 14 + bend, 6, deckY - (y + 14 + bend));
+      ctx.fillRect(x + 17, y + 14 - bend, 6, deckY - (y + 14 - bend));
 
       // Torse (costume blanc)
       ctx.fillRect(x + 4, y + 6, 22, 16);
 
-      // Bras levé avec coupe de champagne
+      // Bras tenant le guidon
       ctx.fillStyle = suitColor;
+      ctx.fillRect(x + 14, y + 10, 5, 10);
+
+      // Bras levé avec coupe de champagne
       const armLift = dino.jumping ? -4 : 0;
       ctx.fillRect(x + 22, y - 6 + armLift, 5, 14);
       ctx.fillStyle = '#d4af37';
