@@ -72,14 +72,6 @@
     box-shadow: 0 0 0 8px #1a1a1a, 0 0 60px rgba(255, 0, 0, 0.8);
   }
 
-  .hint {
-    margin-top: 20px;
-    font-size: 0.85rem;
-    font-style: italic;
-    color: #ff8a80;
-    max-width: 320px;
-  }
-
   .button.shake {
     animation: shake 0.4s ease;
   }
@@ -259,8 +251,6 @@
 
   <button class="button" id="bigRedButton">NE PAS<br>APPUYER</button>
 
-  <div class="hint" id="hint">Rappuie encore si tu l'oses... la voix monte de plus en plus aigu à chaque fois.</div>
-
   <div class="status" id="status"></div>
 
   <audio id="sound" src="sounds/clip.mp3" preload="auto"></audio>
@@ -276,7 +266,6 @@
     const sound = document.getElementById('sound');
     const flash = document.getElementById('flash');
     const status = document.getElementById('status');
-    const hint = document.getElementById('hint');
     const hackOverlay = document.getElementById('hackOverlay');
 
     // Liste des images "wtf" à faire apparaître au clic.
@@ -311,14 +300,24 @@
         el.style.setProperty('--fy3', (Math.random() * 40 - 20).toFixed(0) + 'px');
       }
 
+      // Zone centrale à éviter pour laisser le bouton cliquable (en %).
+      function randomPosAwayFromButton() {
+        let left, top, tries = 0;
+        do {
+          left = Math.random() * 65;
+          top = Math.random() * 60;
+          tries++;
+        } while (left > 15 && left < 55 && top > 20 && top < 60 && tries < 20);
+        return { left, top };
+      }
+
       const count = 10;
       for (let i = 0; i < count; i++) {
         const delay = i * 110;
         setTimeout(() => {
           const src = wtfImages[Math.floor(Math.random() * wtfImages.length)];
-          const size = 34 + Math.random() * 22; // en vw, donc responsive
-          const left = Math.random() * 65;
-          const top = Math.random() * 60;
+          const size = 30 + Math.random() * 16; // en vw, donc responsive
+          const { left, top } = randomPosAwayFromButton();
           const rot = (Math.random() * 60 - 30).toFixed(1) + 'deg';
 
           const img = document.createElement('img');
@@ -384,8 +383,6 @@
       sound.play().catch(() => {
         status.textContent = "Ajoute ton fichier audio dans sounds/clip.mp3 pour entendre le son !";
       });
-
-      hint.textContent = `Niveau ${clickCount} — rappuie encore, la voix monte toujours plus haut.`;
     });
   </script>
 
