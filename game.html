@@ -174,12 +174,60 @@
       }
     }
 
+    function drawWing(cx, cy, side) {
+      ctx.fillStyle = '#f2f2f2';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      for (let i = 0; i <= 4; i++) {
+        const spread = side * (10 + i * 7);
+        const lift = -4 - i * 6 + Math.sin(frame / 10 + i) * 2;
+        ctx.lineTo(cx + spread, cy + lift);
+        ctx.lineTo(cx + spread * 0.7, cy + lift + 8);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#c9c9c9';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function drawFlameTrail(x, y) {
+      const flicker = Math.sin(frame / 3) * 2;
+      const colors = ['#ff6a00', '#ffb400', '#ff3d00'];
+      for (let i = 0; i < 5; i++) {
+        const fx = x - 4 - i * 5;
+        const fy = y + 18 + Math.sin(frame / 4 + i) * 3;
+        const size = 6 - i;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(fx, fy);
+        ctx.lineTo(fx - size, fy + size + flicker);
+        ctx.lineTo(fx + size, fy + size + flicker);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
     function drawClubGuy() {
       const x = dino.x;
       const y = dino.y;
       const legFrame = Math.floor(frame / 6) % 2;
       const suitColor = '#f5f5f5';
       const skinColor = '#e8b98a';
+
+      // Aura légendaire
+      const glow = ctx.createRadialGradient(x + 15, y + 6, 4, x + 15, y + 6, 34);
+      glow.addColorStop(0, 'rgba(255, 215, 80, 0.55)');
+      glow.addColorStop(1, 'rgba(255, 215, 80, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - 25, y - 30, 80, 80);
+
+      // Traînée de flammes
+      drawFlameTrail(x, y);
+
+      // Ailes (derrière le corps)
+      drawWing(x + 4, y + 10, -1);
+      drawWing(x + 20, y + 10, 1);
 
       // Jambes
       ctx.fillStyle = suitColor;
