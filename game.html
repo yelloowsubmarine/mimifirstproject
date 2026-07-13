@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dog Runner</title>
+<title>Club Yacht Runner</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -13,8 +13,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #f7f7f7;
-    color: #535353;
+    background: linear-gradient(#bfe6f5, #eaf7fb);
+    color: #12384f;
     font-family: "Courier New", monospace;
     text-align: center;
   }
@@ -26,15 +26,15 @@
   }
 
   #gameCanvas {
-    background: #f7f7f7;
-    border-bottom: 2px solid #535353;
+    background: linear-gradient(#bfe6f5 60%, #2a8fc0 60%);
+    border-bottom: 2px solid #12384f;
     touch-action: none;
   }
 
   #hint {
     margin-top: 14px;
     font-size: 0.85rem;
-    color: #999;
+    color: #4c7690;
   }
 
   #score {
@@ -43,12 +43,13 @@
     right: max(16px, calc(50% - 300px));
     font-size: 0.9rem;
     letter-spacing: 1px;
+    color: #12384f;
   }
 </style>
 </head>
 <body>
 
-  <h1>🐶 APPUIE SUR ESPACE / CLIC / TAP POUR SAUTER</h1>
+  <h1>🥂 APPUIE SUR ESPACE / CLIC / TAP POUR SAUTER</h1>
   <canvas id="gameCanvas" width="600" height="200"></canvas>
   <p id="hint">Espace ou clic pour démarrer</p>
   <div id="score">SCORE: 0 &nbsp; HI: 0</div>
@@ -86,13 +87,13 @@
     }
 
     function spawnObstacle() {
-      const isBird = Math.random() < 0.2 && score > 300;
-      if (isBird) {
-        const height = [140, 160][Math.floor(Math.random() * 2)];
-        obstacles.push({ x: canvas.width, y: height, w: 34, h: 24, type: 'bird' });
+      const isDisco = Math.random() < 0.2 && score > 300;
+      if (isDisco) {
+        const height = [130, 150][Math.floor(Math.random() * 2)];
+        obstacles.push({ x: canvas.width, y: height, w: 26, h: 26, type: 'disco' });
       } else {
         const size = 20 + Math.random() * 16;
-        obstacles.push({ x: canvas.width, y: GROUND_Y + (30 - size), w: size * 0.7, h: size, type: 'cactus' });
+        obstacles.push({ x: canvas.width, y: GROUND_Y + (30 - size), w: size * 0.55, h: size, type: 'bottle' });
       }
     }
 
@@ -163,82 +164,91 @@
     }
 
     function drawGround() {
-      ctx.strokeStyle = '#535353';
+      ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, GROUND_Y + 30);
-      ctx.lineTo(canvas.width, GROUND_Y + 30);
-      ctx.stroke();
-
-      ctx.fillStyle = '#535353';
-      const dashOffset = (frame * speed) % 20;
-      for (let x = -dashOffset; x < canvas.width; x += 20) {
-        ctx.fillRect(x, GROUND_Y + 32, 10, 2);
+      const waveOffset = (frame * speed * 0.5) % 24;
+      for (let x = -waveOffset; x < canvas.width; x += 24) {
+        ctx.beginPath();
+        ctx.arc(x, GROUND_Y + 30, 6, Math.PI, 0);
+        ctx.stroke();
       }
     }
 
-    function drawDog() {
+    function drawClubGuy() {
       const x = dino.x;
       const y = dino.y;
       const legFrame = Math.floor(frame / 6) % 2;
-      const bodyColor = '#8a5a2b';
-      const earColor = '#5c3a1a';
+      const suitColor = '#f5f5f5';
+      const skinColor = '#e8b98a';
 
-      ctx.fillStyle = bodyColor;
+      // Jambes
+      ctx.fillStyle = suitColor;
+      if (!dino.jumping) {
+        if (legFrame === 0) {
+          ctx.fillRect(x + 6, y + 20, 6, 10);
+          ctx.fillRect(x + 18, y + 20, 6, 7);
+        } else {
+          ctx.fillRect(x + 6, y + 20, 6, 7);
+          ctx.fillRect(x + 18, y + 20, 6, 10);
+        }
+      } else {
+        ctx.fillRect(x + 6, y + 20, 6, 8);
+        ctx.fillRect(x + 18, y + 20, 6, 8);
+      }
 
-      // Corps
-      ctx.fillRect(x + 4, y + 6, 24, 14);
+      // Torse (costume blanc)
+      ctx.fillRect(x + 4, y + 6, 22, 16);
+
+      // Bras levé avec coupe de champagne
+      ctx.fillStyle = suitColor;
+      const armLift = dino.jumping ? -4 : 0;
+      ctx.fillRect(x + 22, y - 6 + armLift, 5, 14);
+      ctx.fillStyle = '#d4af37';
+      ctx.fillRect(x + 23, y - 10 + armLift, 3, 5);
+      ctx.fillStyle = '#f7e97a';
+      ctx.fillRect(x + 23, y - 12 + armLift, 3, 3);
 
       // Tête
-      ctx.fillRect(x + 22, y, 14, 14);
+      ctx.fillStyle = skinColor;
+      ctx.fillRect(x + 6, y - 8, 12, 12);
 
-      // Museau
-      ctx.fillStyle = '#c99a5b';
-      ctx.fillRect(x + 32, y + 6, 8, 6);
-      ctx.fillStyle = '#2a1a0a';
-      ctx.fillRect(x + 37, y + 8, 3, 3);
-
-      // Oreille tombante
-      ctx.fillStyle = earColor;
-      const earWag = dino.jumping ? -2 : (Math.floor(frame / 8) % 2 === 0 ? 0 : 1);
-      ctx.fillRect(x + 24, y + 2 + earWag, 5, 9);
+      // Cheveux blonds
+      ctx.fillStyle = '#e8c766';
+      ctx.fillRect(x + 5, y - 11, 14, 5);
 
       // Oeil
       ctx.fillStyle = '#2a1a0a';
-      ctx.fillRect(x + 30, y + 3, 3, 3);
-
-      // Queue qui remue
-      ctx.fillStyle = bodyColor;
-      const tailWag = Math.floor(frame / 5) % 2 === 0 ? -4 : 4;
-      ctx.fillRect(x - 2, y + 4 + tailWag, 8, 4);
-
-      // Pattes
-      ctx.fillStyle = earColor;
-      if (!dino.jumping) {
-        if (legFrame === 0) {
-          ctx.fillRect(x + 6, y + 20, 5, 8);
-          ctx.fillRect(x + 20, y + 20, 5, 5);
-        } else {
-          ctx.fillRect(x + 6, y + 20, 5, 5);
-          ctx.fillRect(x + 20, y + 20, 5, 8);
-        }
-      } else {
-        ctx.fillRect(x + 6, y + 20, 5, 6);
-        ctx.fillRect(x + 20, y + 20, 5, 6);
-      }
+      ctx.fillRect(x + 14, y - 4, 2, 2);
     }
 
     function drawObstacles() {
       for (const o of obstacles) {
-        ctx.fillStyle = o.type === 'bird' ? '#a33' : '#535353';
-        ctx.fillRect(o.x, o.y, o.w, o.h);
+        if (o.type === 'disco') {
+          ctx.fillStyle = '#c9c9d6';
+          ctx.beginPath();
+          ctx.arc(o.x + o.w / 2, o.y + o.h / 2, o.w / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#8a8a9a';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(o.x, o.y + o.h / 2);
+          ctx.lineTo(o.x + o.w, o.y + o.h / 2);
+          ctx.moveTo(o.x + o.w / 2, o.y);
+          ctx.lineTo(o.x + o.w / 2, o.y + o.h);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#1f5c3f';
+          ctx.fillRect(o.x, o.y + 6, o.w, o.h - 6);
+          ctx.fillStyle = '#d4af37';
+          ctx.fillRect(o.x + o.w / 2 - 2, o.y, 4, 8);
+        }
       }
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawGround();
-      drawDog();
+      drawClubGuy();
       drawObstacles();
 
       if (gameOver) {
