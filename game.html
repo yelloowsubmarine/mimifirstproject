@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dino Runner</title>
+<title>Dog Runner</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -48,10 +48,11 @@
 </head>
 <body>
 
-  <h1>APPUIE SUR ESPACE / CLIC / TAP POUR SAUTER</h1>
+  <h1>🐶 APPUIE SUR ESPACE / CLIC / TAP POUR SAUTER</h1>
   <canvas id="gameCanvas" width="600" height="200"></canvas>
   <p id="hint">Espace ou clic pour démarrer</p>
   <div id="score">SCORE: 0 &nbsp; HI: 0</div>
+  <audio id="jumpSound" src="sounds/jump.mp3" preload="auto"></audio>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -66,6 +67,12 @@
     let highScore = Number(localStorage.getItem('dinoHighScore') || 0);
 
     let dino, obstacles, speed, score, frame, running, gameOver;
+
+    const jumpSound = document.getElementById('jumpSound');
+    function playJumpSound() {
+      jumpSound.currentTime = 0;
+      jumpSound.play().catch(() => {});
+    }
 
     function resetGame() {
       dino = { x: 40, y: GROUND_Y, w: 30, h: 30, vy: 0, jumping: false, duckFrame: 0 };
@@ -103,6 +110,7 @@
       if (!dino.jumping) {
         dino.vy = JUMP_FORCE;
         dino.jumping = true;
+        playJumpSound();
       }
     }
 
@@ -169,23 +177,55 @@
       }
     }
 
-    function drawDino() {
-      ctx.fillStyle = '#535353';
+    function drawDog() {
+      const x = dino.x;
+      const y = dino.y;
       const legFrame = Math.floor(frame / 6) % 2;
-      ctx.fillRect(dino.x, dino.y, dino.w, dino.h - 6);
+      const bodyColor = '#8a5a2b';
+      const earColor = '#5c3a1a';
+
+      ctx.fillStyle = bodyColor;
+
+      // Corps
+      ctx.fillRect(x + 4, y + 6, 24, 14);
+
+      // Tête
+      ctx.fillRect(x + 22, y, 14, 14);
+
+      // Museau
+      ctx.fillStyle = '#c99a5b';
+      ctx.fillRect(x + 32, y + 6, 8, 6);
+      ctx.fillStyle = '#2a1a0a';
+      ctx.fillRect(x + 37, y + 8, 3, 3);
+
+      // Oreille tombante
+      ctx.fillStyle = earColor;
+      const earWag = dino.jumping ? -2 : (Math.floor(frame / 8) % 2 === 0 ? 0 : 1);
+      ctx.fillRect(x + 24, y + 2 + earWag, 5, 9);
+
+      // Oeil
+      ctx.fillStyle = '#2a1a0a';
+      ctx.fillRect(x + 30, y + 3, 3, 3);
+
+      // Queue qui remue
+      ctx.fillStyle = bodyColor;
+      const tailWag = Math.floor(frame / 5) % 2 === 0 ? -4 : 4;
+      ctx.fillRect(x - 2, y + 4 + tailWag, 8, 4);
+
+      // Pattes
+      ctx.fillStyle = earColor;
       if (!dino.jumping) {
         if (legFrame === 0) {
-          ctx.fillRect(dino.x + 4, dino.y + dino.h - 6, 6, 6);
-          ctx.fillRect(dino.x + 18, dino.y + dino.h - 6, 6, 4);
+          ctx.fillRect(x + 6, y + 20, 5, 8);
+          ctx.fillRect(x + 20, y + 20, 5, 5);
         } else {
-          ctx.fillRect(dino.x + 4, dino.y + dino.h - 6, 6, 4);
-          ctx.fillRect(dino.x + 18, dino.y + dino.h - 6, 6, 6);
+          ctx.fillRect(x + 6, y + 20, 5, 5);
+          ctx.fillRect(x + 20, y + 20, 5, 8);
         }
       } else {
-        ctx.fillRect(dino.x + 4, dino.y + dino.h - 6, 6, 6);
-        ctx.fillRect(dino.x + 18, dino.y + dino.h - 6, 6, 6);
+        ctx.fillRect(x + 6, y + 20, 5, 6);
+        ctx.fillRect(x + 20, y + 20, 5, 6);
       }
-      ctx.fillRect(dino.x + dino.w - 6, dino.y - 4, 8, 8);
     }
 
     function drawObstacles() {
@@ -198,7 +238,7 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawGround();
-      drawDino();
+      drawDog();
       drawObstacles();
 
       if (gameOver) {
