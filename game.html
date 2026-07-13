@@ -13,46 +13,54 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(#bfe6f5, #eaf7fb);
-    color: #12384f;
-    font-family: "Courier New", monospace;
+    background: radial-gradient(circle at 50% 0%, #1c3f57, #0a1b28 75%);
+    color: #f5e6c8;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     text-align: center;
   }
 
   h1 {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     letter-spacing: 2px;
-    margin: 0 0 12px;
+    margin: 0 0 14px;
+    font-weight: 700;
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
   }
 
   #gameCanvas {
-    background: linear-gradient(#bfe6f5 60%, #2a8fc0 60%);
-    border-bottom: 2px solid #12384f;
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px #d4af37, 0 10px 40px rgba(0, 0, 0, 0.5);
     touch-action: none;
   }
 
   #hint {
-    margin-top: 14px;
-    font-size: 0.85rem;
-    color: #4c7690;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: #cfae6a;
+    letter-spacing: 0.5px;
   }
 
   #score {
     position: fixed;
-    top: 16px;
-    right: max(16px, calc(50% - 300px));
-    font-size: 0.9rem;
+    top: 18px;
+    right: max(18px, calc(50% - 360px));
+    font-size: 1rem;
     letter-spacing: 1px;
-    color: #12384f;
+    font-weight: 700;
+    color: #0a1b28;
+    background: linear-gradient(#f7e9b8, #d4af37);
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   }
 </style>
 </head>
 <body>
 
-  <h1>🥂 APPUIE SUR ESPACE / CLIC / TAP POUR SAUTER</h1>
-  <canvas id="gameCanvas" width="600" height="200"></canvas>
+  <h1>🥂 CLUB YACHT RUNNER — ESPACE / CLIC / TAP POUR SAUTER</h1>
+  <canvas id="gameCanvas" width="720" height="240"></canvas>
   <p id="hint">Espace ou clic pour démarrer</p>
-  <div id="score">SCORE: 0 &nbsp; HI: 0</div>
+  <div id="score">💰 SCORE: 0 &nbsp; HI: 0</div>
   <audio id="jumpSound" src="sounds/jump.mp3" preload="auto"></audio>
 
   <script>
@@ -61,13 +69,13 @@
     const hint = document.getElementById('hint');
     const scoreEl = document.getElementById('score');
 
-    const GROUND_Y = 160;
+    const GROUND_Y = 190;
     const GRAVITY = 0.6;
-    const JUMP_FORCE = -10.5;
+    const JUMP_FORCE = -11;
 
-    let highScore = Number(localStorage.getItem('dinoHighScore') || 0);
+    let highScore = Number(localStorage.getItem('yachtHighScore') || 0);
 
-    let dino, obstacles, speed, score, frame, running, gameOver;
+    let dino, obstacles, speed, score, frame, running, gameOver, confetti;
 
     const jumpSound = document.getElementById('jumpSound');
     function playJumpSound() {
@@ -76,8 +84,9 @@
     }
 
     function resetGame() {
-      dino = { x: 40, y: GROUND_Y, w: 30, h: 30, vy: 0, jumping: false, duckFrame: 0 };
+      dino = { x: 50, y: GROUND_Y, w: 30, h: 30, vy: 0, jumping: false, duckFrame: 0 };
       obstacles = [];
+      confetti = [];
       speed = 6;
       score = 0;
       frame = 0;
@@ -87,13 +96,29 @@
     }
 
     function spawnObstacle() {
-      const isDisco = Math.random() < 0.2 && score > 300;
-      if (isDisco) {
-        const height = [130, 150][Math.floor(Math.random() * 2)];
+      const roll = Math.random();
+      if (roll < 0.2 && score > 300) {
+        const height = [155, 175][Math.floor(Math.random() * 2)];
         obstacles.push({ x: canvas.width, y: height, w: 26, h: 26, type: 'disco' });
+      } else if (roll < 0.32 && score > 150) {
+        obstacles.push({ x: canvas.width, y: GROUND_Y - 10, w: 22, h: 40, type: 'tower' });
       } else {
         const size = 20 + Math.random() * 16;
         obstacles.push({ x: canvas.width, y: GROUND_Y + (30 - size), w: size * 0.55, h: size, type: 'bottle' });
+      }
+    }
+
+    function spawnConfetti() {
+      const colors = ['#d4af37', '#f5e6c8', '#ff6a9f', '#7bd8e0'];
+      for (let i = 0; i < 12; i++) {
+        confetti.push({
+          x: dino.x + 15,
+          y: dino.y + 5,
+          vx: (Math.random() - 0.5) * 4,
+          vy: -Math.random() * 4 - 2,
+          life: 30 + Math.random() * 10,
+          color: colors[Math.floor(Math.random() * colors.length)],
+        });
       }
     }
 
@@ -112,6 +137,7 @@
         dino.vy = JUMP_FORCE;
         dino.jumping = true;
         playJumpSound();
+        spawnConfetti();
       }
     }
 
@@ -132,6 +158,14 @@
 
       speed += 0.0025;
       score += 1;
+
+      for (const c of confetti) {
+        c.x += c.vx;
+        c.y += c.vy;
+        c.vy += 0.15;
+        c.life -= 1;
+      }
+      confetti = confetti.filter(c => c.life > 0);
 
       for (const o of obstacles) {
         o.x -= speed;
@@ -158,19 +192,81 @@
       const finalScore = Math.floor(score / 5);
       if (finalScore > highScore) {
         highScore = finalScore;
-        localStorage.setItem('dinoHighScore', String(highScore));
+        localStorage.setItem('yachtHighScore', String(highScore));
       }
       hint.textContent = 'Perdu ! Espace ou clic pour recommencer';
     }
 
-    function drawGround() {
+    function drawBackground() {
+      const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y + 30);
+      sky.addColorStop(0, '#2f6f95');
+      sky.addColorStop(1, '#8fd0e8');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, canvas.width, GROUND_Y + 30);
+
+      const sun = ctx.createRadialGradient(canvas.width - 90, 40, 4, canvas.width - 90, 40, 60);
+      sun.addColorStop(0, 'rgba(255, 240, 200, 0.9)');
+      sun.addColorStop(1, 'rgba(255, 240, 200, 0)');
+      ctx.fillStyle = sun;
+      ctx.fillRect(canvas.width - 160, -20, 160, 160);
+
+      const yachtOffset = (frame * speed * 0.15) % (canvas.width + 260);
+      drawYacht(canvas.width - yachtOffset + 40);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      const beamAngle = Math.sin(frame / 30) * 0.4;
+      for (const side of [-1, 1]) {
+        ctx.save();
+        ctx.translate(canvas.width / 2 + side * 60, GROUND_Y - 20);
+        ctx.rotate(beamAngle * side);
+        ctx.fillStyle = side > 0 ? 'rgba(255, 106, 159, 0.12)' : 'rgba(123, 216, 224, 0.12)';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-20, -140);
+        ctx.lineTo(20, -140);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      const waveOffset = (frame * speed * 0.5) % 24;
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
-      const waveOffset = (frame * speed * 0.5) % 24;
       for (let x = -waveOffset; x < canvas.width; x += 24) {
         ctx.beginPath();
         ctx.arc(x, GROUND_Y + 30, 6, Math.PI, 0);
         ctx.stroke();
+      }
+      ctx.fillStyle = '#1f6f93';
+      ctx.fillRect(0, GROUND_Y + 32, canvas.width, canvas.height - GROUND_Y - 32);
+    }
+
+    function drawYacht(x) {
+      ctx.fillStyle = '#1c2b36';
+      ctx.fillRect(x, GROUND_Y - 30, 220, 20);
+      ctx.fillRect(x + 30, GROUND_Y - 55, 120, 25);
+      ctx.fillStyle = '#0a1b28';
+      ctx.fillRect(x + 200, GROUND_Y - 30, 30, 30);
+
+      // Silhouettes en fête sur le pont
+      ctx.fillStyle = '#0a1b28';
+      for (let i = 0; i < 4; i++) {
+        const px = x + 45 + i * 25;
+        const armUp = Math.floor(frame / 15 + i) % 2 === 0;
+        ctx.fillRect(px, GROUND_Y - 55, 5, 16);
+        ctx.beginPath();
+        ctx.arc(px + 2, GROUND_Y - 58, 4, 0, Math.PI * 2);
+        ctx.fill();
+        if (armUp) {
+          ctx.fillRect(px - 3, GROUND_Y - 56, 8, 3);
+        }
+      }
+    }
+
+    function drawConfetti() {
+      for (const c of confetti) {
+        ctx.fillStyle = c.color;
+        ctx.fillRect(c.x, c.y, 3, 3);
       }
     }
 
@@ -284,6 +380,16 @@
           ctx.moveTo(o.x + o.w / 2, o.y);
           ctx.lineTo(o.x + o.w / 2, o.y + o.h);
           ctx.stroke();
+        } else if (o.type === 'tower') {
+          for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = '#e9d8a6';
+            ctx.beginPath();
+            ctx.arc(o.x + o.w / 2, o.y + o.h - i * 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
         } else {
           ctx.fillStyle = '#1f5c3f';
           ctx.fillRect(o.x, o.y + 6, o.w, o.h - 6);
@@ -295,19 +401,22 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawGround();
+      drawBackground();
+      drawConfetti();
       drawClubGuy();
       drawObstacles();
 
       if (gameOver) {
-        ctx.fillStyle = '#535353';
-        ctx.font = 'bold 20px monospace';
+        ctx.fillStyle = 'rgba(10, 27, 40, 0.7)';
+        ctx.fillRect(canvas.width / 2 - 110, 60, 220, 60);
+        ctx.fillStyle = '#f5e6c8';
+        ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, 80);
+        ctx.fillText('GAME OVER', canvas.width / 2, 98);
       }
 
       const displayScore = Math.floor(score / 5);
-      scoreEl.textContent = `SCORE: ${displayScore}   HI: ${highScore}`;
+      scoreEl.textContent = `💰 SCORE: ${displayScore}   HI: ${highScore}`;
     }
 
     function loop() {
@@ -335,7 +444,7 @@
     resetGame();
     running = false;
     draw();
-    scoreEl.textContent = `SCORE: 0   HI: ${highScore}`;
+    scoreEl.textContent = `💰 SCORE: 0   HI: ${highScore}`;
   </script>
 
 </body>
