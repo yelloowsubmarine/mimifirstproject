@@ -59,11 +59,25 @@
     font-size: 1.1rem;
     letter-spacing: 1px;
     transition: transform 0.08s ease;
+    animation: idlePulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes idlePulse {
+    0%, 100% { box-shadow: 0 0 0 8px #1a1a1a, 0 0 40px rgba(255, 0, 0, 0.5); }
+    50% { box-shadow: 0 0 0 8px #1a1a1a, 0 0 60px rgba(255, 0, 0, 0.85); }
   }
 
   .button:active {
     transform: scale(0.92);
     box-shadow: 0 0 0 8px #1a1a1a, 0 0 60px rgba(255, 0, 0, 0.8);
+  }
+
+  .hint {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #ff8a80;
+    max-width: 320px;
   }
 
   .button.shake {
@@ -245,6 +259,8 @@
 
   <button class="button" id="bigRedButton">NE PAS<br>APPUYER</button>
 
+  <div class="hint" id="hint">Rappuie encore si tu l'oses... la voix monte de plus en plus aigu à chaque fois.</div>
+
   <div class="status" id="status"></div>
 
   <audio id="sound" src="sounds/clip.mp3" preload="auto"></audio>
@@ -260,6 +276,7 @@
     const sound = document.getElementById('sound');
     const flash = document.getElementById('flash');
     const status = document.getElementById('status');
+    const hint = document.getElementById('hint');
     const hackOverlay = document.getElementById('hackOverlay');
 
     // Liste des images "wtf" à faire apparaître au clic.
@@ -367,6 +384,8 @@
       sound.play().catch(() => {
         status.textContent = "Ajoute ton fichier audio dans sounds/clip.mp3 pour entendre le son !";
       });
+
+      hint.textContent = `Niveau ${clickCount} — rappuie encore, la voix monte toujours plus haut.`;
     });
   </script>
 
