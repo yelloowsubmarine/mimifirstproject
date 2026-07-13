@@ -177,7 +177,7 @@
     justify-content: center;
     background: #1a1a1a;
     color: #fff;
-    font-size: 2.5rem;
+    font-size: 8vw;
   }
 
   body.hacking {
@@ -232,22 +232,22 @@
     function spawnHackImages() {
       hackOverlay.innerHTML = '<div class="glitch-text">SYSTÈME COMPROMIS</div>';
 
-      const count = 14;
+      const count = 10;
       for (let i = 0; i < count; i++) {
-        const delay = i * 90;
+        const delay = i * 110;
         setTimeout(() => {
           const src = wtfImages[Math.floor(Math.random() * wtfImages.length)];
-          const size = 90 + Math.random() * 100;
-          const left = Math.random() * 85;
-          const top = Math.random() * 80;
+          const size = 34 + Math.random() * 22; // en vw, donc responsive
+          const left = Math.random() * 65;
+          const top = Math.random() * 60;
           const rot = (Math.random() * 60 - 30).toFixed(1) + 'deg';
 
           const img = document.createElement('img');
           img.src = src;
           img.className = 'pop-item';
           img.style.setProperty('--rot', rot);
-          img.style.width = size + 'px';
-          img.style.height = size + 'px';
+          img.style.width = size + 'vw';
+          img.style.height = size + 'vw';
           img.style.left = left + '%';
           img.style.top = top + '%';
 
@@ -255,8 +255,8 @@
             const fallback = document.createElement('div');
             fallback.className = 'pop-item pop-fallback';
             fallback.style.setProperty('--rot', rot);
-            fallback.style.width = size + 'px';
-            fallback.style.height = size + 'px';
+            fallback.style.width = size + 'vw';
+            fallback.style.height = size + 'vw';
             fallback.style.left = left + '%';
             fallback.style.top = top + '%';
             fallback.textContent = fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
@@ -283,9 +283,7 @@
 
       setTimeout(() => {
         document.body.classList.remove('hacking');
-        hackOverlay.classList.remove('active');
-        hackOverlay.innerHTML = '';
-      }, 3500);
+      }, 2000);
 
       sound.currentTime = 0;
       sound.play().catch(() => {
