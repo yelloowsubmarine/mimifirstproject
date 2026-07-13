@@ -162,13 +162,26 @@
     border: 3px solid #fff;
     box-shadow: 0 0 25px rgba(255, 0, 0, 0.7);
     object-fit: cover;
-    animation: popIn 0.3s ease forwards;
+    rotate: var(--rot);
+    scale: 0;
+    opacity: 0;
+    animation:
+      popIn 0.3s ease forwards,
+      floaty var(--float-dur, 5s) ease-in-out infinite;
+    animation-delay: 0s, var(--float-delay, 0s);
   }
 
   @keyframes popIn {
-    0% { transform: scale(0) rotate(0deg); opacity: 0; }
-    60% { transform: scale(1.15) rotate(var(--rot)); opacity: 1; }
-    100% { transform: scale(1) rotate(var(--rot)); opacity: 1; }
+    0% { scale: 0; opacity: 0; }
+    60% { scale: 1.15; opacity: 1; }
+    100% { scale: 1; opacity: 1; }
+  }
+
+  @keyframes floaty {
+    0%, 100% { translate: 0 0; }
+    25% { translate: var(--fx1, 15px) var(--fy1, -20px); }
+    50% { translate: var(--fx2, -12px) var(--fy2, 18px); }
+    75% { translate: var(--fx3, 14px) var(--fy3, 10px); }
   }
 
   .pop-fallback {
@@ -265,6 +278,22 @@
     function spawnHackImages() {
       hackOverlay.innerHTML = '<div class="glitch-text">SYSTÈME COMPROMIS</div>';
 
+      function applyFloatStyle(el, size, left, top, rot) {
+        el.style.setProperty('--rot', rot);
+        el.style.width = size + 'vw';
+        el.style.height = size + 'vw';
+        el.style.left = left + '%';
+        el.style.top = top + '%';
+        el.style.setProperty('--float-dur', (3 + Math.random() * 3).toFixed(2) + 's');
+        el.style.setProperty('--float-delay', (-Math.random() * 5).toFixed(2) + 's');
+        el.style.setProperty('--fx1', (Math.random() * 40 - 20).toFixed(0) + 'px');
+        el.style.setProperty('--fy1', (Math.random() * 40 - 20).toFixed(0) + 'px');
+        el.style.setProperty('--fx2', (Math.random() * 40 - 20).toFixed(0) + 'px');
+        el.style.setProperty('--fy2', (Math.random() * 40 - 20).toFixed(0) + 'px');
+        el.style.setProperty('--fx3', (Math.random() * 40 - 20).toFixed(0) + 'px');
+        el.style.setProperty('--fy3', (Math.random() * 40 - 20).toFixed(0) + 'px');
+      }
+
       const count = 10;
       for (let i = 0; i < count; i++) {
         const delay = i * 110;
@@ -278,20 +307,12 @@
           const img = document.createElement('img');
           img.src = src;
           img.className = 'pop-item';
-          img.style.setProperty('--rot', rot);
-          img.style.width = size + 'vw';
-          img.style.height = size + 'vw';
-          img.style.left = left + '%';
-          img.style.top = top + '%';
+          applyFloatStyle(img, size, left, top, rot);
 
           img.onerror = () => {
             const fallback = document.createElement('div');
             fallback.className = 'pop-item pop-fallback';
-            fallback.style.setProperty('--rot', rot);
-            fallback.style.width = size + 'vw';
-            fallback.style.height = size + 'vw';
-            fallback.style.left = left + '%';
-            fallback.style.top = top + '%';
+            applyFloatStyle(fallback, size, left, top, rot);
             fallback.textContent = fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
             img.replaceWith(fallback);
           };
