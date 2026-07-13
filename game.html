@@ -83,6 +83,9 @@
       jumpSound.play().catch(() => {});
     }
 
+    const personaImg = new Image();
+    personaImg.src = 'images/perso.png';
+
     function resetGame() {
       dino = { x: 50, y: GROUND_Y, w: 30, h: 30, vy: 0, jumping: false, duckFrame: 0 };
       obstacles = [];
@@ -352,8 +355,6 @@
     function drawClubGuy() {
       const x = dino.x;
       const y = dino.y;
-      const suitColor = '#f5f5f5';
-      const skinColor = '#e8b98a';
 
       // Aura légendaire
       const glow = ctx.createRadialGradient(x + 15, y + 6, 4, x + 15, y + 6, 34);
@@ -369,38 +370,13 @@
       // Jet-ski (sous les pieds)
       const deckY = drawJetski(x - 4, y + 20);
 
-      // Jambes légèrement fléchies, ancrées sur le jet-ski
-      ctx.fillStyle = suitColor;
-      const bend = dino.jumping ? -3 : Math.sin(frame / 8) * 1;
-      ctx.fillRect(x + 5, y + 14 + bend, 6, deckY - (y + 14 + bend));
-      ctx.fillRect(x + 17, y + 14 - bend, 6, deckY - (y + 14 - bend));
-
-      // Torse (costume blanc)
-      ctx.fillRect(x + 4, y + 6, 22, 16);
-
-      // Bras tenant le guidon
-      ctx.fillStyle = suitColor;
-      ctx.fillRect(x + 14, y + 10, 5, 10);
-
-      // Bras levé avec coupe de champagne
-      const armLift = dino.jumping ? -4 : 0;
-      ctx.fillRect(x + 22, y - 6 + armLift, 5, 14);
-      ctx.fillStyle = '#d4af37';
-      ctx.fillRect(x + 23, y - 10 + armLift, 3, 5);
-      ctx.fillStyle = '#f7e97a';
-      ctx.fillRect(x + 23, y - 12 + armLift, 3, 3);
-
-      // Tête
-      ctx.fillStyle = skinColor;
-      ctx.fillRect(x + 6, y - 8, 12, 12);
-
-      // Cheveux blonds
-      ctx.fillStyle = '#e8c766';
-      ctx.fillRect(x + 5, y - 11, 14, 5);
-
-      // Oeil
-      ctx.fillStyle = '#2a1a0a';
-      ctx.fillRect(x + 14, y - 4, 2, 2);
+      // Personnage (photo détourée), débout sur le jet-ski
+      const bob = dino.jumping ? -4 : Math.sin(frame / 8) * 1;
+      const personW = 46;
+      const personH = personW * (personaImg.naturalHeight / personaImg.naturalWidth || 1.3);
+      if (personaImg.complete && personaImg.naturalWidth > 0) {
+        ctx.drawImage(personaImg, x - 8, deckY - personH + 6 + bob, personW, personH);
+      }
     }
 
     function drawObstacles() {
